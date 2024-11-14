@@ -191,6 +191,49 @@ import { OrbitControls } from 'three/examples/jsm/Addons.js';
 
 // tick()
 
+function createEye(side){
+    let eye = new THREE.Mesh(
+        new THREE.BoxGeometry(1,1.5,.5),
+        new THREE.MeshBasicMaterial({color: 0xffffff})
+    )
+
+    eye.scale.set(.2,.2,1)
+    eye.position.z = .3
+    eye.position.x = (side == "left") ? -.2 : (side == "right") ? .2 : console.log("VALUE ERROR")
+
+    return eye
+}
+
+function createEar(side){
+    let ear = new THREE.Mesh(
+        new THREE.BoxGeometry(.5,3,1),
+        new THREE.MeshBasicMaterial({color: 0xffffff})
+    )
+
+    ear.scale.set(.1,.3,.3)
+
+    ear.position.set(((side=="left") ? .6 : (side=="right") ? -.6 : console.log("VALUE ERROR")),
+                    .2,
+                    -.25)
+    ear.rotation.x = Math.PI * .75
+    ear.rotation.z = Math.PI * ((side=="left") ? .1 : (side=="right") ? -.1 : console.log("VALUE ERROR"))
+    return ear
+}
+
+function createArm(side){
+    let hand = new THREE.Mesh(
+        new THREE.BoxGeometry(.2,.5,.3),
+        new THREE.MeshBasicMaterial({color: 0xffffff})
+    )
+
+    hand.position.x = ((side=="left") ? -.4 : (side=="right") ? .4 : console.log("VALUE ERROR"))
+    hand.position.y = -.8
+    hand.rotation.z = Math.PI * ((side=="left") ? .9 : (side=="right") ? -.9 : console.log("VALUE ERROR"))
+
+    return hand
+}
+
+
 document.body.style.overflow = 'hidden';
 
 const canvas = document.querySelector('canvas.webgl') 
@@ -206,16 +249,14 @@ const renderer = new THREE.WebGLRenderer({
 
 renderer.setSize( sizes.width, sizes.height )
 
-
 const camera = new THREE.PerspectiveCamera( 45,  sizes.width/sizes.height )
-camera.position.z = 5
+camera.position.z = 10
 
 const scene = new THREE.Scene();
 scene.add( camera )
 
 // ALLAY MINECRAFT
 const allay = new THREE.Group()
-
 
 // Head Group Init
 const headCube = new THREE.Group()
@@ -227,55 +268,24 @@ const head = new THREE.Mesh(
     new THREE.BoxGeometry(1,1,1),
     new THREE.MeshBasicMaterial({color: 0x36cbf2})
 )
+
 headCube.add(head)
 
-
 // Eyes
-const lefteyeCube = new THREE.Mesh(
-    new THREE.BoxGeometry(1,1.5,.5),
-    new THREE.MeshBasicMaterial({color: 0xffffff})
-)
 
-const righteyeCube = new THREE.Mesh(
-    new THREE.BoxGeometry(1,1.5,.5),
-    new THREE.MeshBasicMaterial({color: 0xffffff})
-)
+const lefteyeCube = createEye("left")
 
-lefteyeCube.scale.set(.2,.2,1)
-lefteyeCube.position.z = .3
-lefteyeCube.position.x = -.2
-
-righteyeCube.scale.set(.2,.2,1)
-righteyeCube.position.z = .3
-righteyeCube.position.x = .2
+const righteyeCube = createEye("right")
 
 headCube.add( lefteyeCube )
 headCube.add( righteyeCube )
 
-
 // Ears
 
-const leftEar = new THREE.Mesh(
-    new THREE.BoxGeometry(.5,3,1),
-    new THREE.MeshBasicMaterial({color: 0xffffff})
-)
+const leftEar = createEar("left")
+const rightEar = createEar("right")
 
-leftEar.scale.set(.1,.3,.3)
-leftEar.position.set(.6, .2, -.25)
-leftEar.rotation.x = Math.PI * .75
-leftEar.rotation.z = Math.PI * .1
 headCube.add(leftEar)
-
-const rightEar = new THREE.Mesh(
-    new THREE.BoxGeometry(.5,3,1),
-    new THREE.MeshBasicMaterial({color: 0xffffff})
-)
-
-
-rightEar.scale.set(.1,.3,.3)
-rightEar.position.set(-.6, .2, -.25)
-rightEar.rotation.x = Math.PI * .75
-rightEar.rotation.z = Math.PI * -.1
 headCube.add(rightEar)
 
 
@@ -302,35 +312,20 @@ allay.add(bodyGroup)
 
 const hands = new THREE.Group()
 
-const rightHand = new THREE.Mesh(
-    new THREE.BoxGeometry(.2,.5,.3),
-    new THREE.MeshBasicMaterial({color: 0xffffff})
-)
+const rightHand = createArm("right")
 
-const leftHand = new THREE.Mesh(
-    new THREE.BoxGeometry(.2,.5,.3),
-    new THREE.MeshBasicMaterial({color: 0xffffff})
-)
+const leftHand = createArm("left")
 
 hands.add(rightHand)
 hands.add(leftHand)
 
 allay.add(hands)
 
-rightHand.position.x = .4
-rightHand.position.y = -.8
-rightHand.rotation.z = Math.PI * -.9
-
-leftHand.position.x = -.4
-leftHand.position.y = -.8
-leftHand.rotation.z = Math.PI * .9
-
 // Controls and Camera
 
 const controls = new OrbitControls(camera, canvas)
 
 camera.position.x = 0
-
 
 // Animations
 
@@ -355,15 +350,19 @@ gsap.to(body.rotation , {x: Math.PI * -.85, ease: 'sine.inOut', yoyo: true, repe
 
 gsap.to(rightHand.rotation, {z: Math.PI * -.85, ease: 'power4.inOut', yoyo: true, repeat: -1, repeatDelay: .2})
 gsap.to(leftHand.rotation, {z: Math.PI * .85, ease: 'power4.inOut', yoyo: true, repeat: -1, repeatDelay: .2})
+
 // Whole Body Animation
 
 gsap.to(allay.position, {y: .05 , ease: 'sine.inOut', yoyo: true, repeat: -1 , repeatDelay: .2 })
 
 scene.add(allay)
-const clock = new THREE.Clock()
+
 const tick = () =>{
     controls.update()
     renderer.render( scene , camera );
     window.requestAnimationFrame(tick)
 }
+
 tick()
+
+
